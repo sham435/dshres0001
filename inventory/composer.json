@@ -1,0 +1,8 @@
+{
+    "require": {
+        "tecnickcom/tcpdf": "^6.10",
+        "endroid/qrcode": "^5.1",
+        "setasign/fpdf": "^1.8",
+        "fpdf/fpdf": "^1.86"
+    }
+}

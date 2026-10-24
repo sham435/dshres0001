@@ -1,0 +1,54 @@
+Milestones reached==>
+Original build (May 2026, from your logs)
+1. Environment ready — PHP, Composer, MariaDB, fresh Laravel 8 + auth scaffolding, GitHub remote set
+2. Database built — 15 migrations (roles, users, classes, subjects, exams, marks, books, payments, notices, timetables, study-materials, settings + 3 pivot tables)
+3. 13 models + role middleware + 13 controllers + full route map (admin/teacher/student/parent/accountant/librarian)
+4. 30+ admin CRUD views + 6 role dashboards + seeders with login credentials for all roles
+5. Multi-language marks system (EN/TA/SI) + 3,884 Excel records imported + Tamil/Sinhala font fixes + upload-size fix + export route-order fix
+This debug session (Oct 2026)
+6. IDE errors cleared — Auth → auth() helper (7 views), @var User type annotations, missing marksheet view created
+7. 12 runtime bugs fixed — broken dashboard routes (student + parent), controller/view variable mismatches, mark validation mismatch (creation was 100% broken), timetable validation mismatch, study-material upload flow, missing class relation crash, wrong pivot keys, missing profile/edit views, book NOT NULL violations, parent marksheet auth hole, teacher 403 redirects, missing download routes + librarian seeder
+8. Fully verified — all 7 roles log in, 35/35 pages HTTP 200, all create/update/upload/download POST flows tested against the DB, export downloads a valid .xlsx, server running with correct upload flags
+
+School Management System — Blueprint==>
+1. Overview
+- Framework: Laravel 8 (PHP), Bootstrap UI via laravel/ui, Excel via maatwebsite/excel, PDFs via barryvdh/laravel-dompdf
+- DB: MySQL/MariaDB, database school_management
+- Languages: English / Tamil / Sinhala (session locale switcher, Noto fonts)
+- Server: env -u DATABASE_URL php -d upload_max_filesize=100M -d post_max_size=100M artisan serve --host=127.0.0.1 --port=8000
+- Login: email + password cj for all test users
+2. Roles (7) & Access Map
+Role	Prefix	Can access
+super_admin	admin.*	Everything (full CRUD all resources + settings + student-marks import/export)
+admin	admin.*	Same as super_admin (delete restricted by policy intent)
+teacher	teacher.*	Dashboard, marks (index/create/store/edit/update), timetable (view), study-materials (full exc. show + download), profile
+student	student.*	Dashboard, marks, marksheet, timetable, payments, books, notices, profile
+parent	parent.*	Dashboard, child's marksheet (marksheet/{child}, ownership-checked), timetable (timetable/{child?}), payments, books, notices, profile
+accountant	accountant.*	Dashboard, payments CRUD + receipt
+librarian	librarian.*	Dashboard, books CRUD
+3. Database Schema (16 tables)
+- roles (id, name, display_name, description)
+- users (+ role_id, username, phone, address, dob, gender)
+- classes, subjects (→ class_id), exams (→ class_id, exam_date)
+- marks (→ exam/student/subject, marks_obtained, total_marks, grade NOT NULL, remarks)
+- books (author + available_quantity NOT NULL)
+- payments (→ student, fee_type, amount, paid_amount=0, due_date NOT NULL, status enum paid/unpaid/partial)
+- notices (title, content, notice_date, → posted_by)
+- timetables (→ class/subject/teacher, day_of_week, start/end_time, room_number)
+- study_materials (title, description, file_path, → subject/teacher)
+- settings, student_marks (flat import table, unique sm_unique)
+- Pivots: class_student (class_id, student_id, academic_year), teacher_class (teacher/class/subject, is_class_teacher), student_parent (parent_id, student_id)
+4. Key Controllers & Rules
+- DashboardController — role redirect + per-role counters (myMarks/notices/payments/booksAvailable, recentNotices/totalPayments, availableBooks/recentBooks)
+- MarkController — class filter via student.classes pivot; store/update validate marks_obtained/total_marks, auto-grade A≥75/B≥65/C≥55/S≥40/F; parent ownership enforced; teacher redirects stay under teacher.*
+- TimetableController — validates subject_id/teacher_id/day_of_week; create/edit supplied with subjects + teachers
+- StudyMaterialController — no class_id; shared admin/teacher views via $routePrefix; download with 404 guard
+- BookController — author + available_quantity required
+- StudentMarkController — search/filter + Excel import/export (routes defined before resource('marks'))
+- CheckRole middleware — role:... gate, 403 otherwise
+5. Test Accounts
+cj@cj.com, admin@admin.com, teacher@teacher.com, student@student.com, parent@parent.com, accountant@accountant.com, librarian@librarian.com — all password cj
+6. Known Gotchas
+- Shell DATABASE_URL (Postgres, set by tooling) hijacks Laravel's DB config → always env -u DATABASE_URL for artisan
+- PHP 8.4 + Laravel 8 emits deprecation noise (harmless); never php -l-blocks
+- Never re-add show to resources (controllers don't implement it); keep import/export above the marks resource

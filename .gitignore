@@ -1,0 +1,39 @@
+# Environment
+.env
+.env.local
+.env.production
+
+# Dependencies
+node_modules/
+vendor/
+inventory/vendor/
+inventory/fpdf/
+
+# Build artifacts
+public/build/
+public/css/main.css
+public/scss/
+
+# Storage
+storage/logs/
+storage/cache/
+storage/uploads/
+inventory/uploads/
+inventory/temp/
+
+# OS files
+.DS_Store
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Laravel
+bootstrap/cache/
+storage/framework/cache/
+storage/framework/sessions/
+storage/framework/views/
+storage/logs/

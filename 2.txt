@@ -1,0 +1,29 @@
+Session 2 - Translations, UI fixes, Data Import
+============================================
+
+Date: 2026-05-26
+
+Summary:
+- Built full multi-language student marks system (EN/TA/SI)
+- Imported 3,884 records from actual Excel file
+- Fixed PostTooLargeException by passing explicit -d flags to artisan serve
+- Fixed font rendering for Tamil/Sinhala complex scripts
+
+Issues fixed:
+1. PostTooLargeException - php artisan serve ignores system php.ini for post_max_size
+   Fix: php -d upload_max_filesize=100M -d post_max_size=100M artisan serve ...
+
+2. Cramped Tamil/Sinhala font rendering
+   Fix: 
+   - Added Noto Sans Tamil + Noto Sans Sinhala + Inter via Google Fonts
+   - Font stack: 'Inter', 'Noto Sans Sinhala', 'Noto Sans Tamil', 'Nunito', sans-serif
+   - :lang(si), :lang(ta) selectors with line-height: 2, letter-spacing: 0.025em
+   - Extended table cell padding for Tamil/Sinhala modes
+   - Added font-smoothing for better rendering
+
+Files modified:
+- resources/views/layouts/admin.blade.php (CSS, fonts)
+
+Server: php -d upload_max_filesize=100M -d post_max_size=100M artisan serve --host=0.0.0.0 --port=8000
+
+Status: All languages verified working via curl. Data intact (3,884 marks records).

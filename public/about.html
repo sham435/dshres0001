@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="si" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>අ/ නාච්චාදූව මුස්ලිම් මහා විද්‍යාලය, අනුරාධපුර</title>
+<meta name="description" content="නාච්චාදූව මුස්ලිම් මහා විද්‍යාලය - අනුරාධපුර දිස්ත්‍රික්කය">
+<meta property="og:site_name" content="නාච්චාදූව මුස්ලිම් මහා විද්‍යාලය">
+<meta property="og:type" content="website">
+<link rel="icon" href="https://anueducation.lk/images/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<style>
+:root {
+  --color-primary: #3d1a78;
+  --color-accent: #d4a017;
+  --color-background: #f9f5ff;
+  --color-dark: #250f4a;
+  --color-text-dark: #3d1a78;
+}
+body { font-family: 'Noto Sans', sans-serif; background: var(--color-background); color: var(--color-text-dark); margin: 0; }
+:lang(si) { font-family: 'Noto Sans Sinhala', sans-serif; }
+[x-cloak] { display: none !important; }
+@keyframes marquee-scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+@keyframes programmes-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.6; transform:scale(.85); } }
+.pulse-dot { animation: pulse 2s infinite; }
+.marquee-track { display: inline-flex; gap: 3rem; animation: marquee-scroll 30s linear infinite; }
+.marquee-track:hover { animation-play-state: paused; }
+.prog-track { display: flex; gap: 1.25rem; width: max-content; animation: programmes-scroll 35s linear infinite; }
+.prog-track:hover { animation-play-state: paused; }
+.prog-wrapper { overflow: hidden; mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent); }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<!-- 1. TOP UTILITY BAR -->
+<div class="bg-[var(--color-primary)] text-white py-2 px-4">
+  <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-2">
+    <div class="flex items-center gap-2">
+      <img src="https://anueducation.lk/images/emblem.png" alt="Emblem" class="h-8">
+
+      <div class="ml-2">
+        <div class="font-bold text-[var(--color-accent)] text-sm md:text-lg">අ/ නාච්චාදූව මුස්ලිම් මහා විද්‍යාලය</div>
+        <div class="text-white/80 text-xs">අනුරාධපුර දිස්ත්‍රික්කය, උතුරු මැද පළාත, ශ්‍රී ලංකාව</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-3 text-sm">
+      <span class="hidden md:inline"><i class="bi bi-telephone" style="font-size:1rem;"></i> 025-2223030</span>
+      <span class="hidden md:inline"><i class="bi bi-envelope" style="font-size:1rem;"></i> info@anueducation.lk</span>
+      <a href="https://www.facebook.com/p/Nachchaduwa-muslim-maha-vidyala-100057583623835/" target="_blank" class="text-white hover:text-[var(--color-accent)]"><i class="bi bi-facebook" style="font-size:1rem;"></i></a>
+      <a href="https://www.youtube.com/@anuradhapurazonaleducation" target="_blank" class="text-white hover:text-[var(--color-accent)]"><i class="bi bi-youtube" style="font-size:1rem;"></i></a>
+      <div class="flex gap-1">
+        <a href="https://anueducation.lk/en/schools/19508" class="px-2 py-0.5 rounded text-xs border border-white/40 hover:bg-white/10">EN</a>
+        <a href="https://anueducation.lk/si/schools/19508" class="px-2 py-0.5 rounded text-xs bg-[var(--color-accent)] text-[var(--color-primary)] font-bold">සිං</a>
+      </div>
+      <div x-data="{
+        open:false,
+        options:[
+          {key:'admin',url:'/login',label:'පරිපාලක පිවිසුම'},
+          {key:'teacher',url:'/login',label:'ගුරු පිවිසුම'},
+          {key:'principal',url:'/login',label:'විදුහල්පති පිවිසුම'}
+        ],
+        mainUrl:null, mainLabel:'පිවිසුම',
+        init(){const s=localStorage.getItem('portal_login_preference');const m=s?this.options.find(o=>o.key===s):null;if(m){this.mainUrl=m.url;this.mainLabel=m.label;}},
+        select(k){localStorage.setItem('portal_login_preference',k);const m=this.options.find(o=>o.key===k);this.mainUrl=m.url;this.mainLabel=m.label;this.open=false;}
+      }" class="relative">
+        <button @click="if(mainUrl&&!open){window.location.href=mainUrl}else{open=!open}" class="flex items-center gap-1 px-3 py-1 rounded-full border border-white/60 text-xs hover:bg-white/10">
+          <i class="bi bi-lock" style="font-size:1rem;"></i> <span x-text="mainLabel"></span>
+          <svg class="w-3 h-3 transition-transform" :class="open?'rotate-180':''" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div x-show="open" @click.away="open=false" x-transition class="absolute right-0 mt-1 bg-[var(--color-primary)] border border-white/25 rounded-lg shadow-lg min-w-[11rem] z-200" x-cloak style="z-index:200;">
+          <template x-for="opt in options" :key="opt.key">
+            <a @click.prevent="select(opt.key); window.location.href=opt.url" href="#" class="block px-4 py-2 text-sm text-white hover:bg-white/10 border-b border-white/10" x-text="opt.label"></a>
+          </template>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. STICKY NAV -->
+<nav class="sticky top-0 z-50 bg-[var(--color-dark)] shadow-lg">
+  <div class="max-w-7xl mx-auto px-5 flex justify-between items-center">
+    <div class="hidden md:flex">
+      <a href="/" class="text-white/85 py-4 px-3.5 text-sm hover:text-white hover:bg-white/10">මුල්පිටුව</a>
+      <a href="/clubs-si.php" class="text-white/85 py-4 px-3.5 text-sm hover:text-white hover:bg-white/10">සංගම් සහ සමාජ</a>
+      <a href="/" class="text-white/85 py-4 px-3.5 text-sm hover:text-white hover:bg-white/10">කොට්ඨාස</a>
+      <a href="/album.php" class="text-white/85 py-4 px-3.5 text-sm hover:text-white hover:bg-white/10">ඡායාරූප ගැලරිය</a>
+      <a href="/saas.php" class="text-white/85 py-4 px-3.5 text-sm hover:text-white hover:bg-white/10">SaaS Platform</a>
+      <a href="/" class="text-white/85 py-4 px-3.5 text-sm hover:text-white hover:bg-white/10">ප්‍රතිඵල</a>
+      <a href="/" class="text-white/85 py-4 px-3.5 text-sm hover:text-white hover:bg-white/10">පුවත්</a>
+      <a href="/contact" class="text-white/85 py-4 px-3.5 text-sm hover:text-white hover:bg-white/10">අමතන්න</a>
+    </div>
+    <button class="md:hidden text-white p-3" onclick="document.getElementById('mobileNav').style.display=document.getElementById('mobileNav').style.display==='block'?'none':'block'">☰</button>
+  </div>
+  <div id="mobileNav" class="md:hidden bg-[var(--color-primary)]" style="display:none;">
+    <a href="/" class="block py-3 px-5 text-white/85 border-b border-white/10">මුල්පිටුව</a>
+    <a href="/" class="block py-3 px-5 text-white/85 border-b border-white/10">පරිපාලනය</a>
+    <a href="/" class="block py-3 px-5 text-white/85 border-b border-white/10">කොට්ඨාස</a>
+    <a href="/album.php" class="block py-3 px-5 text-white/85 border-b border-white/10">ඡායාරූප ගැලරිය</a>
+    <a href="/" class="block py-3 px-5 text-white/85 border-b border-white/10">ප්‍රතිඵල</a>
+    <a href="/" class="block py-3 px-5 text-white/85 border-b border-white/10">පුවත්</a>
+    <a href="/contact" class="block py-3 px-5 text-white/85 border-b border-white/10">අමතන්න</a>
+  </div>
+</nav>
+
+<!-- 3. HERO SLIDER -->
+<div class="relative overflow-hidden bg-[var(--color-dark)]" style="height:580px;" x-data="{current:0,total:3,paused:false,init(){setInterval(()=>{if(!this.paused&&this.total>1)this.current=(this.current+1)%this.total},5000)}}" @mouseenter="paused=true" @mouseleave="paused=false">
+  <div class="absolute inset-0 transition-opacity duration-700" :class="current===0?'opacity-100':'opacity-0'">
+    <img src="https://anueducation.lk/storage/sliders/01M099Q7PNT8WTCJ28R6TM2BC9.jpg" class="w-full h-full object-cover" alt="Slide 1">
+    <div class="absolute inset-0" style="background:linear-gradient(to top,rgba(0,0,0,.7),rgba(0,0,0,.2) 60%,transparent);"></div>
+    <div class="absolute bottom-10 left-0 right-0 px-6 md:px-10 max-w-3xl">
+      <h1 class="text-xl md:text-3xl lg:text-4xl font-bold text-white" style="text-shadow:0 2px 8px rgba(0,0,0,.5);">සම්පූර්ණ පුද්ගලයන් වීමට උගනිමු</h1>
+      <p class="text-sm md:text-lg text-white/85 mt-2">"චරිතය, නිර්මාණශීලිත්වය සහ නායකත්වය වර්ධනය කිරීම."</p>
+      <a href="/" class="inline-block mt-4 px-6 py-2 rounded font-semibold text-sm" style="background:var(--color-accent);color:var(--color-primary);">පාසල් වෙත</a>
+    </div>
+  </div>
+  <div class="absolute inset-0 transition-opacity duration-700" :class="current===1?'opacity-100':'opacity-0'">
+    <img src="https://anueducation.lk/storage/sliders/01M099VY59EPBB6FXK1F2QBVHB.jpg" class="w-full h-full object-cover" alt="Slide 2">
+    <div class="absolute inset-0" style="background:linear-gradient(to top,rgba(0,0,0,.7),rgba(0,0,0,.2) 60%,transparent);"></div>
+    <div class="absolute bottom-10 left-0 right-0 px-6 md:px-10 max-w-3xl">
+      <h1 class="text-xl md:text-3xl lg:text-4xl font-bold text-white" style="text-shadow:0 2px 8px rgba(0,0,0,.5);">දැන ගැනීමට උගෙනිමු</h1>
+      <p class="text-sm md:text-lg text-white/85 mt-2">"ජීවිත කාලය පුරාම ඉගෙනීම සඳහා පදනමක් ගොඩනැගීම."</p>
+      <a href="/" class="inline-block mt-4 px-6 py-2 rounded font-semibold text-sm" style="background:var(--color-accent);color:var(--color-primary);">වැඩසටහන් වෙත</a>
+    </div>
+  </div>
+  <div class="absolute inset-0 transition-opacity duration-700" :class="current===2?'opacity-100':'opacity-0'">
+    <img src="https://anueducation.lk/storage/sliders/01M099Z41E98R69RK5AZSK4YGC.jpg" class="w-full h-full object-cover" alt="Slide 3">
+    <div class="absolute inset-0" style="background:linear-gradient(to top,rgba(0,0,0,.7),rgba(0,0,0,.2) 60%,transparent);"></div>
+    <div class="absolute bottom-10 left-0 right-0 px-6 md:px-10 max-w-3xl">
+      <h1 class="text-xl md:text-3xl lg:text-4xl font-bold text-white" style="text-shadow:0 2px 8px rgba(0,0,0,.5);">ක්‍රියා කිරීමට උගෙනිමු</h1>
+      <p class="text-sm md:text-lg text-white/85 mt-2">"දැනුම, කුසලතා සහ නවෝත්පාදන බවට පරිවර්තනය කිරීම."</p>
+      <a href="/" class="inline-block mt-4 px-6 py-2 rounded font-semibold text-sm" style="background:var(--color-accent);color:var(--color-primary);">පාසල් වෙත</a>
+    </div>
+  </div>
+  <button class="absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center text-white" style="background:rgba(0,0,0,.4);" @click="current=(current+2)%3">‹</button>
+  <button class="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center text-white" style="background:rgba(0,0,0,.4);" @click="current=(current+1)%3">›</button>
+  <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+    <span class="w-2.5 h-2.5 rounded-full cursor-pointer" :class="current===0?'bg-[var(--color-accent)]':'bg-white/40'" @click="current=0"></span>
+    <span class="w-2.5 h-2.5 rounded-full cursor-pointer" :class="current===1?'bg-[var(--color-accent)]':'bg-white/40'" @click="current=1"></span>
+    <span class="w-2.5 h-2.5 rounded-full cursor-pointer" :class="current===2?'bg-[var(--color-accent)]':'bg-white/40'" @click="current=2"></span>
+  </div>
+</div>
+
+<!-- 4. NOTICE MARQUEE -->
+<div class="bg-[var(--color-accent)] py-2 overflow-hidden">
+  <div class="max-w-7xl mx-auto px-4 flex items-center gap-4">
+    <span class="px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap" style="background:var(--color-primary);color:white;">නිවේදන</span>
+    <div class="flex-1 overflow-hidden">
+      <div class="marquee-track text-sm font-medium" style="color:var(--color-primary);">
+        <span class="mr-12">E-Tests සඳහා පිවිසෙන්න.</span>
+        <span class="mr-12">2026.12.31 දිනට එකම පාසලේ වසර 5ක් සම්පූර්ණ කරන ලද ගුරුභවතුන්ගේ නාම ලේඛනය</span>
+        <span class="mr-12">E-Tests සඳහා පිවිසෙන්න.</span>
+        <span class="mr-12">2026.12.31 දිනට එකම පාසලේ වසර 5ක් සම්පූර්ණ කරන ලද ගුරුභවතුන්ගේ නාම ලේඛනය</span>
+      </div>
+    </div>
+    <a href="/notices" class="text-[var(--color-primary)] font-bold text-sm whitespace-nowrap">සියල්ල බලන්න ›</a>
+  </div>
+</div>
+
+<!-- VIDEO SECTION -->
+<section class="py-12 bg-white" data-aos="fade-up">
+  <div class="max-w-7xl mx-auto px-4">
+    <h2 class="text-xl md:text-2xl font-bold mb-6 text-center" style="color:var(--color-primary);">School Tour Video</h2>
+    <div class="max-w-4xl mx-auto">
+      <div class="relative rounded-2xl overflow-hidden shadow-lg" style="padding-bottom:56.25%;height:0;">
+        <iframe class="absolute inset-0 w-full h-full" src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="School Tour" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      </div>
+      <p class="text-center text-sm text-gray-500 mt-4">Take a virtual tour of our school campus and facilities</p>
+    </div>
+  </div>
+</section>
+
+<!-- DEMO IMAGES GALLERY -->
+<section class="py-12" style="background:var(--color-background);" data-aos="fade-up">
+  <div class="max-w-7xl mx-auto px-4">
+    <h2 class="text-xl md:text-2xl font-bold mb-6 text-center" style="color:var(--color-primary);">School Life</h2>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div class="rounded-xl overflow-hidden shadow-sm" data-aos="zoom-in" data-aos-delay="0">
+        <img src="https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&h=300&fit=crop" alt="School Building" class="w-full h-48 object-cover">
+      </div>
+      <div class="rounded-xl overflow-hidden shadow-sm" data-aos="zoom-in" data-aos-delay="100">
+        <img src="https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&h=300&fit=crop" alt="Classroom" class="w-full h-48 object-cover">
+      </div>
+      <div class="rounded-xl overflow-hidden shadow-sm" data-aos="zoom-in" data-aos-delay="200">
+        <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&h=300&fit=crop" alt="Students" class="w-full h-48 object-cover">
+      </div>
+      <div class="rounded-xl overflow-hidden shadow-sm" data-aos="zoom-in" data-aos-delay="300">
+        <img src="https://images.unsplash.com/photo-1577896851231-70bc1748c696?w=400&h=300&fit=crop" alt="Library" class="w-full h-48 object-cover">
+      </div>
+      <div class="rounded-xl overflow-hidden shadow-sm" data-aos="zoom-in" data-aos-delay="400">
+        <img src="https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&h=300&fit=crop" alt="Campus" class="w-full h-48 object-cover">
+      </div>
+      <div class="rounded-xl overflow-hidden shadow-sm" data-aos="zoom-in" data-aos-delay="500">
+        <img src="https://images.unsplash.com/photo-1523050854058-8df90110c476?w=400&h=300&fit=crop" alt="Graduation" class="w-full h-48 object-cover">
+      </div>
+      <div class="rounded-xl overflow-hidden shadow-sm" data-aos="zoom-in" data-aos-delay="600">
+        <img src="https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=400&h=300&fit=crop" alt="Laboratory" class="w-full h-48 object-cover">
+      </div>
+      <div class="rounded-xl overflow-hidden shadow-sm" data-aos="zoom-in" data-aos-delay="700">
+        <img src="https://images.unsplash.com/photo-1562774053-701939374585?w=400&h=300&fit=crop" alt="Sports" class="w-full h-48 object-cover">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. DIRECTOR SECTION -->
+<section class="py-10 md:py-14" id="director-section" data-aos="fade-up">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="text-center mb-8">
+      <div class="text-xs uppercase tracking-widest font-bold mb-2" style="color:var(--color-accent);">අපගේ නායකත්වය</div>
+      <h2 class="text-xl md:text-2xl font-bold" style="color:var(--color-primary);">පාසල් විදුහල්පතිවරයා</h2>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+      <!-- Left Column -->
+      <div class="flex flex-col gap-4 order-3 md:order-1">
+        <div class="rounded-2xl p-5 flex items-center gap-4" style="background:var(--color-primary);">
+
+          <img src="https://anueducation.lk/images/logo.png" alt="Logo" class="h-10 w-10 rounded-full">
+          <div>
+            <div class="text-xs font-semibold" style="color:var(--color-accent);">අ/ නාච්චාදූව මුස්ලිම් මහා විද්‍යාලය</div>
+            <div class="text-xs text-white/75">අනුරාධපුර</div>
+          </div>
+        </div>
+        <div class="rounded-2xl p-6 shadow-sm border" style="border-color:rgba(0,0,0,.07);background:white;">
+          <div class="flex items-center gap-2 mb-3">
+            <svg class="w-4 h-4" style="width:16px;height:16px;color:var(--color-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            <span class="text-xs font-bold uppercase tracking-widest" style="color:var(--color-accent);">අපගේ දැක්ම</span>
+          </div>
+          <p class="text-sm">ශ්‍රී ලංකාවේ හොඳම හා ආදර්ශමත්ම පාසලවීම, ගුණාත්මක අධ්‍යාපනයක් සහ සම්පූර්ණ පුද්ගල වර්ධනයක් සහිත ශිෂ්‍යයන් බිහිකිරීම.</p>
+        </div>
+        <div class="rounded-2xl p-6 shadow-sm border" style="border-color:rgba(0,0,0,.07);background:white;">
+          <div class="flex items-center gap-2 mb-3">
+            <svg class="w-4 h-4" style="width:16px;height:16px;color:var(--color-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            <span class="text-xs font-bold uppercase tracking-widest" style="color:var(--color-accent);">අපගේ මෙහෙවර</span>
+          </div>
+          <p class="text-sm">ගුණාත්මක හා ධනාත්මක සංවර්ධනයක් සඳහා අධ්‍යාපනයේ නව්‍ය මායිම් සොයන අතරම ගුරුවරුන්, සිසුන් සහ පාසල් ප්‍රජාවට ප්‍රශස්ත සේවාවක් සහ පහසුකම් සැපයීම.</p>
+        </div>
+      </div>
+      <!-- Center Column -->
+      <div class="order-1 md:order-2 rounded-2xl overflow-hidden flex flex-col shadow-lg" style="background:var(--color-primary);">
+        <div class="relative flex-1 min-h-72 md:min-h-96">
+          <img src="https://anueducation.lk/storage/director/01M09934965M36W4EG0QTTWEHA.png" alt="Principal" class="absolute inset-0 w-full h-full object-cover object-top">
+          <div class="absolute inset-0" style="background:linear-gradient(to top,var(--color-primary),transparent 40%);"></div>
+        </div>
+        <div class="px-5 py-4 text-center" style="background:var(--color-primary);">
+          <div class="text-white font-bold text-lg">විදුහල්පතිවරයා</div>
+          <div class="text-xs mt-1" style="color:var(--color-accent);">කලාප අධ්‍යාපන අධ්‍යක්ෂ (ශ්‍රී.ලං.අ.ප.සේ 1)</div>
+          <div class="w-12 h-px mx-auto my-3" style="background:rgba(255,255,255,.2);"></div>
+          <div class="flex justify-center gap-2">
+            <a href="tel:0716714929" class="w-7 h-7 rounded-full flex items-center justify-center text-white" style="background:rgba(255,255,255,.12);" title="0716714929"><i class="bi bi-telephone" style="font-size:1rem;"></i></a>
+            <a href="https://www.facebook.com/mahesha.manjarika.2025/" target="_blank" class="w-7 h-7 rounded-full flex items-center justify-center text-white" style="background:rgba(255,255,255,.12);"><i class="bi bi-facebook" style="font-size:1rem;"></i></a>
+            <a href="https://wa.me/94716714929" target="_blank" class="w-7 h-7 rounded-full flex items-center justify-center text-white" style="background:rgba(255,255,255,.12);"><i class="bi bi-whatsapp" style="font-size:1rem;"></i></a>
+          </div>
+        </div>
+      </div>
+      <!-- Right Column -->
+      <div class="order-2 md:order-3 rounded-2xl p-6 shadow-sm border flex flex-col h-full" style="border-color:rgba(0,0,0,.07);background:white;">
+        <div class="flex items-center gap-2 mb-4">
+          <svg class="w-4 h-4" style="width:16px;height:16px;color:var(--color-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+          <span class="text-xs font-bold uppercase tracking-widest" style="color:var(--color-accent);">විදුහල්පතිතුමාගේ පණිවිඩය</span>
+        </div>
+        <blockquote class="pl-4 border-l-4 flex-1" style="border-color:var(--color-accent);">
+          <p class="text-sm" style="font-style:italic;">"අධ්‍යාපනය යනු පුද්ගලයන්ගේත් සමාජයේත් ගතිකත්වය හා සංවර්ධනය හැඩගස්වන ප්‍රබලතම බලවේගයකි. විවිධ අභියෝග මධ්‍යයේ වුවද, එය අපේ රටට විශාල ප්‍රගතියක් අත්කර දී ඇත."</p>
+        </blockquote>
+        <div class="mt-auto pt-4 border-t" style="border-color:rgba(0,0,0,.07);">
+          <div class="text-xs font-semibold" style="color:var(--color-primary);">— විදුහල්පතිවරයා</div>
+          <div class="text-xs" style="color:var(--color-accent);">නාච්චාදූව මුස්ලිම් මහා විද්‍යාලය</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. STATS BAND -->
+<section class="py-12" style="background:var(--color-primary);" id="stats-section" data-aos="fade-up">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      <div class="rounded-2xl p-6 md:p-8 flex flex-col items-center text-center" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);">
+        <svg class="w-6 h-6 md:w-8 md:h-8 mb-3" style="width:24px;height:24px;color:var(--color-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+        <div class="text-3xl md:text-4xl font-extrabold mb-1" style="color:var(--color-accent);"><span class="counter" data-target="26">0</span></div>
+        <div class="text-sm md:text-base text-white/75">පන්ති කාමර</div>
+      </div>
+      <div class="rounded-2xl p-6 md:p-8 flex flex-col items-center text-center" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);">
+        <svg class="w-6 h-6 md:w-8 md:h-8 mb-3" style="width:24px;height:24px;color:var(--color-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+        <div class="text-3xl md:text-4xl font-extrabold mb-1" style="color:var(--color-accent);"><span class="counter" data-target="13">0</span></div>
+        <div class="text-sm md:text-base text-white/75">සමාන්තර පන්ති කාමර</div>
+      </div>
+      <div class="rounded-2xl p-6 md:p-8 flex flex-col items-center text-center" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);">
+        <svg class="w-6 h-6 md:w-8 md:h-8 mb-3" style="width:24px;height:24px;color:var(--color-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        <div class="text-3xl md:text-4xl font-extrabold mb-1" style="color:var(--color-accent);"><span class="counter" data-target="800">0</span><span>+</span></div>
+        <div class="text-sm md:text-base text-white/75">සිසුන්</div>
+      </div>
+      <div class="rounded-2xl p-6 md:p-8 flex flex-col items-center text-center" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);">
+        <svg class="w-6 h-6 md:w-8 md:h-8 mb-3" style="width:24px;height:24px;color:var(--color-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        <div class="text-3xl md:text-4xl font-extrabold mb-1" style="color:var(--color-accent);"><span class="counter" data-target="40">0</span><span>+</span></div>
+        <div class="text-sm md:text-base text-white/75">ගුරුවරුන්</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7. SPECIAL PROGRAMMES -->
+<section class="py-12 bg-white" x-data="homeProgrammeModal()" data-aos="fade-up">
+  <div class="max-w-7xl mx-auto px-4">
+    <h2 class="text-xl md:text-2xl font-bold mb-6 pb-3 border-b-4 inline-block" style="color:var(--color-primary);border-color:var(--color-accent);">විශේෂ වැඩසටහන්</h2>
+    <div class="prog-wrapper">
+      <div class="prog-track">
+        <!-- Real items -->
+        <div class="flex-shrink-0" style="flex:0 0 280px;">
+          <div class="rounded-xl overflow-hidden shadow-sm border" style="border-color:rgba(0,0,0,.07);">
+            <div class="relative">
+              <img src="https://img.youtube.com/vi/On2r2g5N9Ck/mqdefault.jpg" alt="සංධාරා" class="w-full" style="height:180px;object-fit:cover;">
+              <span class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-xs font-semibold text-white" style="background:var(--color-accent);color:var(--color-primary);">Arts</span>
+              <a href="https://www.youtube.com/watch?v=On2r2g5N9Ck" target="_blank" class="absolute inset-0 flex items-center justify-center" style="background:rgba(0,0,0,.3);">
+                <div class="w-6 h-6 rounded-full flex items-center justify-center text-white" style="background:rgba(255,0,0,.9);"><i class="bi bi-play-fill text-xl" style="font-size:1rem;"></i></div>
+              </a>
+            </div>
+            <div class="p-4">
+              <div class="flex justify-between items-center">
+                <h3 class="text-sm font-semibold" style="color:var(--color-primary);">සංධාරා</h3>
+                <button @click="open({title:'සංධාරා',category:'Arts',youtube:'https://www.youtube.com/watch?v=On2r2g5N9Ck',desc:'සංධාරා කලා වැඩසටහන'})" class="text-xs font-bold" style="color:var(--color-primary);">තව කියවන්න →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex-shrink-0" style="flex:0 0 280px;">
+          <div class="rounded-xl overflow-hidden shadow-sm border" style="border-color:rgba(0,0,0,.07);">
+            <div class="relative">
+              <img src="https://img.youtube.com/vi/bOogxpiCo0U/mqdefault.jpg" alt="TV සත්සල්" class="w-full" style="height:180px;object-fit:cover;">
+              <span class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-xs font-semibold text-white" style="background:var(--color-accent);color:var(--color-primary);">Academic</span>
+              <a href="https://youtu.be/bOogxpiCo0U" target="_blank" class="absolute inset-0 flex items-center justify-center" style="background:rgba(0,0,0,.3);">
+                <div class="w-6 h-6 rounded-full flex items-center justify-center text-white" style="background:rgba(255,0,0,.9);"><i class="bi bi-play-fill text-xl" style="font-size:1rem;"></i></div>
+              </a>
+            </div>
+            <div class="p-4">
+              <div class="flex justify-between items-center">
+                <h3 class="text-sm font-semibold" style="color:var(--color-primary);">TV සත්සල්</h3>
+                <button @click="open({title:'TV සත්සල්',category:'Academic',youtube:'https://youtu.be/bOogxpiCo0U',desc:'TV සත්සල් අධ්‍යාපන වැඩසටහන'})" class="text-xs font-bold" style="color:var(--color-primary);">තව කියවන්න →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex-shrink-0" style="flex:0 0 280px;">
+          <div class="rounded-xl overflow-hidden shadow-sm border" style="border-color:rgba(0,0,0,.07);">
+            <div class="relative">
+              <img src="https://img.youtube.com/vi/1o0bgN9S5NA/mqdefault.jpg" alt="අදිති" class="w-full" style="height:180px;object-fit:cover;">
+              <span class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-xs font-semibold text-white" style="background:var(--color-accent);color:var(--color-primary);">Academic</span>
+              <a href="https://youtu.be/1o0bgN9S5NA" target="_blank" class="absolute inset-0 flex items-center justify-center" style="background:rgba(0,0,0,.3);">
+                <div class="w-6 h-6 rounded-full flex items-center justify-center text-white" style="background:rgba(255,0,0,.9);"><i class="bi bi-play-fill text-xl" style="font-size:1rem;"></i></div>
+              </a>
+            </div>
+            <div class="p-4">
+              <div class="flex justify-between items-center">
+                <h3 class="text-sm font-semibold" style="color:var(--color-primary);">අදිති</h3>
+                <button @click="open({title:'අදිති',category:'Academic',youtube:'https://youtu.be/1o0bgN9S5NA',desc:'අදිති වැඩසටහන'})" class="text-xs font-bold" style="color:var(--color-primary);">තව කියවන්න →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex-shrink-0" style="flex:0 0 280px;">
+          <div class="rounded-xl overflow-hidden shadow-sm border" style="border-color:rgba(0,0,0,.07);">
+            <div class="relative">
+              <img src="https://img.youtube.com/vi/zbaxP03-OEo/mqdefault.jpg" alt="උරගල" class="w-full" style="height:180px;object-fit:cover;">
+              <span class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-xs font-semibold text-white" style="background:var(--color-accent);color:var(--color-primary);">Cultural</span>
+              <a href="https://youtu.be/zbaxP03-OEo" target="_blank" class="absolute inset-0 flex items-center justify-center" style="background:rgba(0,0,0,.3);">
+                <div class="w-6 h-6 rounded-full flex items-center justify-center text-white" style="background:rgba(255,0,0,.9);"><i class="bi bi-play-fill text-xl" style="font-size:1rem;"></i></div>
+              </a>
+            </div>
+            <div class="p-4">
+              <div class="flex justify-between items-center">
+                <h3 class="text-sm font-semibold" style="color:var(--color-primary);">උරගල</h3>
+                <button @click="open({title:'උරගල',category:'Cultural',youtube:'https://youtu.be/zbaxP03-OEo',desc:'උරගල සංස්කෘතික වැඩසටහන'})" class="text-xs font-bold" style="color:var(--color-primary);">තව කියවන්න →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex-shrink-0" style="flex:0 0 280px;">
+          <div class="rounded-xl overflow-hidden shadow-sm border" style="border-color:rgba(0,0,0,.07);">
+            <div class="relative">
+              <img src="https://img.youtube.com/vi/8mmY3ZMm9BQ/mqdefault.jpg" alt="ක්‍රීඩා උළෙල" class="w-full" style="height:180px;object-fit:cover;">
+              <span class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-xs font-semibold text-white" style="background:var(--color-accent);color:var(--color-primary);">Sports</span>
+              <a href="https://youtu.be/8mmY3ZMm9BQ" target="_blank" class="absolute inset-0 flex items-center justify-center" style="background:rgba(0,0,0,.3);">
+                <div class="w-6 h-6 rounded-full flex items-center justify-center text-white" style="background:rgba(255,0,0,.9);"><i class="bi bi-play-fill text-xl" style="font-size:1rem;"></i></div>
+              </a>
+            </div>
+            <div class="p-4">
+              <div class="flex justify-between items-center">
+                <h3 class="text-sm font-semibold" style="color:var(--color-primary);">කලාප ක්‍රීඩා උළෙල - 2025</h3>
+                <button @click="open({title:'කලාප ක්‍රීඩා උළෙල - 2025',category:'Sports',youtube:'https://youtu.be/8mmY3ZMm9BQ',desc:'2025 කලාප ක්‍රීඩා උළෙල'})" class="text-xs font-bold" style="color:var(--color-primary);">තව කියවන්න →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Clone for seamless loop -->
+        <div class="flex-shrink-0" style="flex:0 0 280px;">
+          <div class="rounded-xl overflow-hidden shadow-sm border" style="border-color:rgba(0,0,0,.07);">
+            <div class="relative">
+              <img src="https://img.youtube.com/vi/On2r2g5N9Ck/mqdefault.jpg" alt="සංධාරා" class="w-full" style="height:180px;object-fit:cover;">
+              <span class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-xs font-semibold text-white" style="background:var(--color-accent);color:var(--color-primary);">Arts</span>
+              <a href="https://www.youtube.com/watch?v=On2r2g5N9Ck" target="_blank" class="absolute inset-0 flex items-center justify-center" style="background:rgba(0,0,0,.3);">
+                <div class="w-6 h-6 rounded-full flex items-center justify-center text-white" style="background:rgba(255,0,0,.9);"><i class="bi bi-play-fill text-xl" style="font-size:1rem;"></i></div>
+              </a>
+            </div>
+            <div class="p-4">
+              <div class="flex justify-between items-center">
+                <h3 class="text-sm font-semibold" style="color:var(--color-primary);">සංධාරා</h3>
+                <button @click="open({title:'සංධාරා',category:'Arts',youtube:'https://www.youtube.com/watch?v=On2r2g5N9Ck',desc:'සංධාරා කලා වැඩසටහන'})" class="text-xs font-bold" style="color:var(--color-primary);">තව කියවන්න →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="programmeModal" x-show="isOpen" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,.75);" @click.self="close()" onclick="if(event.target===this){this.style.display='none';document.body.style.overflow='';}" x-cloak>
+      <div class="bg-white rounded-2xl max-w-4xl w-full flex flex-col" style="max-height:90vh;">
+        <div class="p-5 flex justify-between items-center border-b">
+          <div>
+            <span class="px-2 py-0.5 rounded-full text-xs font-semibold text-white" style="background:var(--color-accent);color:var(--color-primary);" x-text="selected?.category"></span>
+            <h2 class="text-lg font-bold mt-2" style="color:var(--color-primary);" x-text="selected?.title"></h2>
+          </div>
+          <button @click="close()" onclick="document.getElementById('programmeModal').style.display='none'; document.body.style.overflow='';" class="w-7 h-7 rounded-full flex items-center justify-center cursor-pointer" style="background:var(--color-primary);color:white;border:none;cursor:pointer;"><i class="bi bi-x-lg" style="font-size:1rem;pointer-events:none;"></i></button>
+        </div>
+        <div class="p-5 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="flex-1">
+            <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:0.75rem;">
+              <iframe x-show="selected?.youtube" :src="getYoutubeEmbed(selected?.youtube)" class="absolute inset-0 w-full h-full" frameborder="0" allowfullscreen></iframe>
+            </div>
+          </div>
+          <div class="flex-1">
+            <div class="text-xs uppercase tracking-widest font-bold mb-2" style="color:var(--color-accent);">විස්තරය</div>
+            <p class="text-sm" x-text="selected?.desc"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8. QUICK LINKS -->
+<section class="py-12" style="background:var(--color-primary);">
+  <div class="max-w-7xl mx-auto px-4">
+    <h2 class="text-center text-white text-xl md:text-2xl font-bold mb-6 flex items-center justify-center gap-2">
+      <svg class="w-5 h-5" style="width:20px;height:20px;color:var(--color-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+      ඉක්මන් සබැඳි
+    </h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+      <a href="/downloads" class="flex flex-col items-center gap-2 p-5 rounded-2xl no-underline transition-all duration-200 hover:-translate-y-1" style="background:rgba(255,255,255,.08);border:1px solid rgba(201,168,76,.2);">
+        <svg class="w-7 h-7 md:w-8 md:h-8" style="width:28px;height:28px;color:var(--color-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        <span class="text-xs md:text-sm text-white/90 text-center font-medium">බාගැනීම්</span>
+      </a>
+      <a href="/notices" class="flex flex-col items-center gap-2 p-5 rounded-2xl no-underline transition-all duration-200 hover:-translate-y-1" style="background:rgba(255,255,255,.08);border:1px solid rgba(201,168,76,.2);">
+        <svg class="w-7 h-7 md:w-8 md:h-8" style="width:28px;height:28px;color:var(--color-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+        <span class="text-xs md:text-sm text-white/90 text-center font-medium">නිවේදන</span>
+      </a>
+      <a href="/students" class="flex flex-col items-center gap-2 p-5 rounded-2xl no-underline transition-all duration-200 hover:-translate-y-1" style="background:rgba(255,255,255,.08);border:1px solid rgba(201,168,76,.2);">
+        <svg class="w-7 h-7 md:w-8 md:h-8" style="width:28px;height:28px;color:var(--color-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        <span class="text-xs md:text-sm text-white/90 text-center font-medium">සිසුන්</span>
+      </a>
+      <a href="/exams" class="flex flex-col items-center gap-2 p-5 rounded-2xl no-underline transition-all duration-200 hover:-translate-y-1" style="background:rgba(255,255,255,.08);border:1px solid rgba(201,168,76,.2);">
+        <svg class="w-7 h-7 md:w-8 md:h-8" style="width:28px;height:28px;color:var(--color-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <span class="text-xs md:text-sm text-white/90 text-center font-medium">ප්‍රතිඵල</span>
+      </a>
+      <a href="/timetable" class="flex flex-col items-center gap-2 p-5 rounded-2xl no-underline transition-all duration-200 hover:-translate-y-1" style="background:rgba(255,255,255,.08);border:1px solid rgba(201,168,76,.2);">
+        <svg class="w-7 h-7 md:w-8 md:h-8" style="width:28px;height:28px;color:var(--color-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <span class="text-xs md:text-sm text-white/90 text-center font-medium">කාලසටහන</span>
+      </a>
+      <a href="/contact" class="flex flex-col items-center gap-2 p-5 rounded-2xl no-underline transition-all duration-200 hover:-translate-y-1" style="background:rgba(255,255,255,.08);border:1px solid rgba(201,168,76,.2);">
+        <svg class="w-7 h-7 md:w-8 md:h-8" style="width:28px;height:28px;color:var(--color-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        <span class="text-xs md:text-sm text-white/90 text-center font-medium">අමතන්න</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- 9. FOOTER -->
+<footer style="background:var(--color-dark);padding:50px 0 0;color:#cbd5e1;">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+      <div>
+        <div class="flex items-center gap-2 mb-4">
+          <img src="https://anueducation.lk/images/emblem.png" alt="Emblem" class="h-8">
+          <img src="https://anueducation.lk/images/logo.png" alt="Logo" class="h-8 rounded-full">
+
+        </div>
+        <div class="font-bold mb-3" style="color:var(--color-accent);">අ/ නාච්චාදූව මුස්ලිම් මහා විද්‍යාලය</div>
+        <div class="text-sm space-y-1" style="color:rgba(255,255,255,.6);line-height:2;">
+          <div class="flex items-center gap-2"><svg class="w-4 h-4" style="width:16px;height:16px;color:var(--color-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg> +942280311</div>
+          <div class="flex items-center gap-2"><svg class="w-4 h-4" style="width:16px;height:16px;color:var(--color-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> nachchaduwa.mv@gmail.com</div>
+          <div class="flex items-center gap-2"><svg class="w-4 h-4" style="width:16px;height:16px;color:var(--color-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg> නව නගරය, නාච්චාදූව</div>
+        </div>
+      </div>
+      <div>
+        <h6 class="text-white font-bold mb-4">පාසල් තොරතුරු</h6>
+        <div class="text-sm space-y-1" style="color:rgba(255,255,255,.6);line-height:2;">
+          <div>1C වර්ගය (ශ්‍රේණිය 1-13)</div>
+          <div>දෙමළ මාධ්‍ය</div>
+          <div>1920 සිට සේවයේ</div>
+          <div>සංගණන අංකය: 19508</div>
+        </div>
+      </div>
+      <div>
+        <h6 class="text-white font-bold mb-4">ඉක්මන් සබැඳි</h6>
+        <div class="space-y-1">
+          <a href="/" class="block text-sm flex items-center gap-1" style="color:rgba(255,255,255,.6);"><svg class="w-3 h-3" style="width:12px;height:12px;color:var(--color-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg> මුල් පිටුව</a>
+          <a href="/students" class="block text-sm flex items-center gap-1" style="color:rgba(255,255,255,.6);"><svg class="w-3 h-3" style="width:12px;height:12px;color:var(--color-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg> සිසුන්</a>
+          <a href="/teachers" class="block text-sm flex items-center gap-1" style="color:rgba(255,255,255,.6);"><svg class="w-3 h-3" style="width:12px;height:12px;color:var(--color-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg> ගුරුවරුන්</a>
+          <a href="/attendance" class="block text-sm flex items-center gap-1" style="color:rgba(255,255,255,.6);"><svg class="w-3 h-3" style="width:12px;height:12px;color:var(--color-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg> පැමිණීම</a>
+          <a href="/exams" class="block text-sm flex items-center gap-1" style="color:rgba(255,255,255,.6);"><svg class="w-3 h-3" style="width:12px;height:12px;color:var(--color-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg> විභාග</a>
+          <a href="/contact" class="block text-sm flex items-center gap-1" style="color:rgba(255,255,255,.6);"><svg class="w-3 h-3" style="width:12px;height:12px;color:var(--color-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg> අමතන්න</a>
+        </div>
+      </div>
+      <div>
+        <h6 class="text-white font-bold mb-4">අප අනුගමනය කරන්න</h6>
+        <div class="flex gap-2">
+          <a href="https://www.facebook.com/p/Nachchaduwa-muslim-maha-vidyala-100057583623835/" target="_blank" class="w-6 h-6 rounded-lg flex items-center justify-center text-white" style="background:#1877f2;"><i class="bi bi-facebook" style="font-size:1rem;"></i></a>
+          <a href="https://www.youtube.com/@anuradhapurazonaleducation" target="_blank" class="w-6 h-6 rounded-lg flex items-center justify-center text-white" style="background:#ff0000;"><i class="bi bi-youtube" style="font-size:1rem;"></i></a>
+        </div>
+      </div>
+    </div>
+    <div class="mt-8 pt-4 text-center text-sm" style="border-top:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.2);color:rgba(255,255,255,.5);">
+      <div class="-left">Copyright © 2026 A/Nachchaduwa Muslim Maha Vidyalaya. All Rights Reserved.</div>
+      <div class="-right">Carefully handcrafted with &nbsp;&nbsp;<i class="icon ion ion-ios-heart love-heart"></i>&nbsp;&nbsp; by <a href="https://zuse.lk" target="_blank">iGN3 Technologies (Pvt) Ltd</a>.</div>
+    </div>
+  </div>
+</footer>
+
+<!-- Scripts -->
+<script>
+// Stats counter animation
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      document.querySelectorAll('.counter').forEach(el => {
+        const target = parseInt(el.dataset.target);
+        let current = 0;
+        const step = target / 60;
+        const timer = setInterval(() => {
+          current += step;
+          if (current >= target) { current = target; clearInterval(timer); }
+          el.textContent = Math.floor(current).toLocaleString();
+        }, 33);
+      });
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.3 });
+const statsSection = document.getElementById('stats-section');
+if (statsSection) observer.observe(statsSection);
+
+// Alpine programme modal factory
+function homeProgrammeModal() {
+  return {
+    isOpen: false,
+    selected: null,
+    open(p) { this.selected = p; this.isOpen = true; document.body.style.overflow = 'hidden'; },
+    close() { this.isOpen = false; document.body.style.overflow = ''; },
+    getYoutubeEmbed(url) {
+      if (!url) return '';
+      const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
+      return match ? 'https://www.youtube.com/embed/' + match[1] + '?autoplay=1' : '';
+    }
+  };
+}
+</script>
+<script>AOS.init({ duration: 800, once: true, offset: 50 });</script>
+<script>
+  // Ensure modal is hidden on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    var modal = document.getElementById('programmeModal');
+    if (modal) modal.style.display = 'none';
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+Session 3 — 26 May 2026
+========================
+
+=== What was done ===
+
+1. Tested full login flow (admin@admin.com / cj) → all 3 locales render correctly
+2. Verified sidebar links translated in EN/TA/SI:
+   - EN: "Dashboard", "Marks / Grades", "Student Marks"
+   - TA: "டாஷ்போர்டு", "மதிப்பெண்கள் / தரங்கள்", "மாணவர் மதிப்பெண்கள்"
+   - SI: "උපකරණ පුවරුව", "ලකුණු / ශ්‍රේණි", "ශිෂ්‍ය ලකුණු"
+3. Tested Excel upload via web UI (Maatwebsite path) — works, no PostTooLargeException
+4. Tested export with locale-switched headers:
+   - EN: "Student Name, Admission No, Grade, Section, Subject, Mark"
+   - TA: "மாணவரின் பெயர், சேர்க்கை எண், வகுப்பு, பிரிவு, பாடம், மதிப்பெண்"
+   - SI: "ශිෂ්‍යයාගේ නම, ඇතුළත් කිරීමේ අංකය, ශ්‍රේණිය, කොටස, විෂය, ලකුණු"
+5. Added language switcher to auth layout (resources/views/layouts/app.blade.php)
+6. Embedded Noto Sans Tamil/Sinhala @font-face declarations in resources/sass/app.scss
+7. Moved language-specific CSS from inline <style> to compiled app.scss
+
+=== Export route bug fix ===
+
+Bug: GET /admin/marks/export returned 500 with "Method MarkController::show does not exist".
+
+Root cause: Route ordering in routes/web.php (admin group). The line:
+    Route::resource('marks', MarkController::class);
+creates GET /admin/marks/{mark} → MarkController@show. Since resource()
+was defined BEFORE the explicit export route:
+    Route::get('/marks/export', ...);
+the URL "export" was matched as {mark} parameter by the resource route,
+causing Laravel to dispatch to MarkController@show('export'), which
+doesn't exist.
+
+Fix: Moved import/export routes BEFORE Route::resource('marks'):
+    Route::post('/marks/import', ...)     // now at line 42
+    Route::get('/marks/export', ...)      // now at line 43
+    Route::resource('marks', ...)         // now at line 44
+
+Laravel matches routes top-to-bottom, so explicit literal routes take
+priority over parameterized resource routes when defined first.
+
+=== Font rendering fixes ===
+
+- Added @font-face blocks for Noto Sans Tamil and Noto Sans Sinhala
+  directly in resources/sass/app.scss (18 declarations: 3 weights ×
+  3 unicode-range blocks per font)
+- :lang(ta) forces font-family: 'Noto Sans Tamil', sans-serif with
+  line-height: 1.8, letter-spacing: 0.02em, word-spacing: 0.1em
+- :lang(si) forces font-family: 'Noto Sans Sinhala', sans-serif with
+  line-height: 1.8, letter-spacing: 0.03em, word-spacing: 0.1em
+- Body font stack: 'Inter', 'Noto Sans Sinhala', 'Noto Sans Tamil',
+  'Nunito', sans-serif
+- Removed dependency on external Google Fonts CSS <link> for font
+  declarations (the @font-face rules are now self-contained in app.css)
+- Applied same fixes to both admin.blade.php and app.blade.php
+
+=== Files modified ===
+- routes/web.php (lines 42-44): moved import/export before resource route
+- resources/sass/app.scss: added @font-face blocks, body font-stack,
+  :lang(ta)/:lang(si) CSS rules
+- resources/views/layouts/app.blade.php: added Google Fonts <link>,
+  lang switcher dropdown, removed inline font CSS (now in compiled app.css)
+- resources/views/layouts/admin.blade.php: cleaned up inline <style>
+  (language-specific CSS moved to app.scss)
+- Deleted resources/css/app.css (was unused; build uses app.scss only)
+
+=== Server command ===
+php -d upload_max_filesize=100M -d post_max_size=100M artisan serve --host=0.0.0.0 --port=8000
